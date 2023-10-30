@@ -78,7 +78,7 @@ class VanillaEngine:
             if cur_volume < expected_volume:
                 order = Order(stock_code=stock_code, volume=expected_volume - cur_volume,
                               order_type=OrderType.STOCK_BUY)
-                logger.info(f"close position: order={order}")
+                logger.info(f"open position: order={order}")
                 res.append(order)
             else:
                 order = Order(stock_code=stock_code, volume=cur_volume - expected_volume,
