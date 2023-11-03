@@ -1,3 +1,4 @@
+import time
 from dataclasses import dataclass
 from core.factory import from_qmt_position_list, from_csv_position
 from trade.qmt import QmtGrpcClient
@@ -48,7 +49,7 @@ class VanillaEngine:
             "expected_position": expected_position
         }
 
-    def generate_order(self, current_position: List[Position], expected_position: List[Position]):
+    def generate_order(self, current_position: List[Position], expected_position: List[Position]) -> List[Order]:
         """
         通过现有持仓和期望持仓的对比，生成需要进行的操作
         :param current_position: 当前持仓
@@ -99,9 +100,34 @@ class VanillaEngine:
             logger.info(f"submit order: order={order}")
             stock_code = order.stock_code
             volume = order.volume
-            order_type = QmtOrderType.STOCK_BUY if stock_code == OrderType.STOCK_BUY else QmtOrderType.STOCK_SELL
+            order_type = QmtOrderType.STOCK_BUY if order.order_type == OrderType.STOCK_BUY else QmtOrderType.STOCK_SELL
+            if stock_code.endswith("SZ"):
+                price_type = QmtPriceType.MARKET_SZ_CONVERT_5_CANCEL
+            else:
+                price_type = QmtPriceType.MARKET_SH_CONVERT_5_CANCEL
             order_id = self.qmt_client.order_stock(
-                stock_code=stock_code, order_type=order_type, order_volume=volume, price_type=QmtPriceType.LATEST_PRICE,
+                stock_code=stock_code, order_type=order_type, order_volume=volume, price_type=price_type,
+                price=0, strategy_name='test', order_remark='test')
+            qmt_order_id_list.append(order_id)
+        logger.info(f"qmt_order_id_list:{qmt_order_id_list}")
+        return None
+
+    def execute_order_v2(self, order_list: List[Order]):
+        """
+        执行Order
+        :param order_list: order列表
+        :return:
+        """
+        logger.info(f"execute_order_v2: order_list={order_list}")
+        qmt_order_id_list = []
+        for order in order_list:
+            logger.info(f"submit order: order={order}")
+            stock_code = order.stock_code
+            volume = order.volume
+            order_type = QmtOrderType.STOCK_BUY if order.order_type == OrderType.STOCK_BUY else QmtOrderType.STOCK_SELL
+            price_type = QmtPriceType.LATEST_PRICE
+            order_id = self.qmt_client.order_stock(
+                stock_code=stock_code, order_type=order_type, order_volume=volume, price_type=price_type,
                 price=0, strategy_name='test', order_remark='test')
             qmt_order_id_list.append(order_id)
         logger.info(f"qmt_order_id_list:{qmt_order_id_list}")
@@ -119,3 +145,58 @@ class VanillaEngine:
         order_list = self.generate_order(current_position, expected_position)
         logger.info(f"order_list:{order_list}")
         self.execute_order(order_list)
+
+    def submit_target_order_v2(self, target_order, sleep_second: int = 1):
+        """
+        下单版本2
+        1. 以最新价下单，每个1s进行check，如果未成交则撤单，然后重新下单
+        :param target_order: 目标Order
+        :param sleep_second: 下单查询间隔
+        :return:
+        """
+        date = target_order.get("date")
+        expected_position = target_order.get("expected_position")
+        if date < datetime.date.today():
+            logger.info(f"过去日期，跳过:{target_order}")
+            return
+        count = 0
+        today = datetime.date.today()
+        open_datetime = datetime.datetime(today.year, today.month, today.day, 9, 30)
+        while True:
+            now = datetime.datetime.now()
+            if now < open_datetime:
+                time.sleep(0.5)
+                logger.info(f"submit_target_order_v2: 未到开盘时间，sleep")
+                continue
+            order_list = self.place_order_for_loop(expected_position)
+            if len(order_list) == 0:
+                logger.info("submit_target_order_v2: order_list为空，退出循环")
+                break
+            count += 1
+            time.sleep(sleep_second * (count // 10 + 1))
+
+    def place_order_for_loop(self, expected_position: List[Position]) -> List[Order]:
+        """
+        for loop中的下单逻辑
+        :param expected_position: 期望仓位
+        :return:
+        """
+        # 检查可撤单
+        cancelable_order_list = self.qmt_client.get_stock_orders(cancelable_only=True)
+        for cancelable_order in cancelable_order_list:
+            self.qmt_client.cancel_order_stock(cancelable_order.order_id)
+            logger.info(f"place_order_for_loop:撤单{cancelable_order.order_id}")
+        current_position = self.check_current_position()
+        logger.info(f"place_order_for_loop: current_position:{current_position},expected_position:{expected_position}")
+        order_list = self.generate_order(current_position, expected_position)
+        self.execute_order_v2(order_list)
+        return order_list
+
+    def close_cash(self):
+        asset = self.qmt_client.get_stock_asset()
+        cash = float(asset.cash)
+        order_volume = int(cash // 1000)
+        stock_code = '204001.SH'
+        price_type = QmtPriceType.LATEST_PRICE
+        self.qmt_client.order_stock(stock_code=stock_code, order_type=OrderType.STOCK_SELL, order_volume=order_volume,
+                                    price_type=price_type, price=0, strategy_name='test', order_remark='国债逆回购')

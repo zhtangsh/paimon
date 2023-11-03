@@ -96,3 +96,21 @@ class QmtOrder:
         self.strategy_name = o.get('strategy_name')
         self.traded_price = o.get('traded_price')
         self.traded_volume = o.get('traded_volume')
+
+
+@dataclass
+class QmtAsset:
+    account_id: str
+    account_type: str
+    cash: float
+    frozen_cash: float
+    market_value: float
+    total_asset: float
+
+    def __init__(self, o):
+        self.account_id = o.get('account_id')
+        self.account_type = o.get('account_type')
+        self.cash = o.get('cash')
+        self.frozen_cash = o.get('frozen_cash')
+        self.market_value = o.get('market_value')
+        self.total_asset = o.get('total_asset')

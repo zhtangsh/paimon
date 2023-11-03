@@ -12,4 +12,4 @@ if __name__ == '__main__':
 
     filename = 'static/trade_order_20231027.csv'
     target_order_list = engine.build_target_order_csv(filename=filename)
-    engine.submit_target_order(target_order_list)
+    engine.submit_target_order_v2(target_order_list)

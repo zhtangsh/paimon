@@ -49,10 +49,13 @@ class QmtGrpcClient:
             res.append(QmtTrade(obj))
         return res
 
-    def get_stock_orders(self) -> List[QmtOrder]:
+    def get_stock_orders(self, cancelable_only: bool) -> List[QmtOrder]:
+        params = {
+            "cancelable_only": cancelable_only
+        }
         payload = {
             "jsonrpc": "2.0",
-            "params": [],
+            "params": params,
             "method": "tradeInfo.getStockOrders",
             'id': str(uuid.uuid4()),
         }
@@ -94,3 +97,30 @@ class QmtGrpcClient:
         r = requests.post(self._url, data=json.dumps(payload), headers=header)
         r_json = r.json()
         return r_json['result']
+
+    def cancel_order_stock(self, order_id: int) -> int:
+        params = {
+            "order_id": order_id
+        }
+        payload = {
+            "jsonrpc": "2.0",
+            "params": params,
+            "method": "trade.cancel_order_stock",
+            'id': str(uuid.uuid4()),
+        }
+        header = self.build_header()
+        r = requests.post(self._url, data=json.dumps(payload), headers=header)
+        r_json = r.json()
+        return r_json['result']
+
+    def get_stock_asset(self) -> QmtAsset:
+        payload = {
+            "jsonrpc": "2.0",
+            "params": [],
+            "method": "accountInfo.getStockAsset",
+            'id': str(uuid.uuid4()),
+        }
+        header = self.build_header()
+        r = requests.post(self._url, data=json.dumps(payload), headers=header)
+        r_json = r.json()
+        return QmtAsset(r_json['result'])
