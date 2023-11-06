@@ -1,8 +1,7 @@
-import os
-import rqdatac
-import pandas as pd
 import logging
 from typing import Union, List
+
+import rqdatac
 
 logger = logging.getLogger(__name__)
 
@@ -12,8 +11,8 @@ def get_live_ticks(order_book_ids: Union[str, List[str]], start_date: str = None
     """
     获得可转债实时tick数据
     :param order_book_ids: 可转债ID列表
-    :param start_dt: 开始日期
-    :param end_dt: 结束日期
+    :param start_date: 开始日期
+    :param end_date: 结束日期
     :param fields: 返回字段
     :param market: 市场
     :return:

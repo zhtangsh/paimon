@@ -37,3 +37,31 @@ class QmtOrderType:
     STOCK_BUY = 23
     # 卖出
     STOCK_SELL = 24
+
+
+class QmtOrderStatus:
+    """
+    委托状态
+    """
+    # 未报
+    ORDER_UNREPORTED = 48
+    # 待报
+    ORDER_WAIT_REPORTING = 49
+    # 已报
+    ORDER_REPORTED = 50
+    # 已报待撤
+    ORDER_REPORTED_CANCEL = 51
+    # 部成待撤
+    ORDER_PARTSUCC_CANCEL = 52
+    # 部撤
+    ORDER_PART_CANCEL = 53
+    # 已撤
+    ORDER_CANCELED = 54
+    # 部成
+    ORDER_PART_SUCC = 55
+    # 已成
+    ORDER_SUCCEEDED = 56
+    # 废单
+    ORDER_JUNK = 57
+    # 未知
+    ORDER_UNKNOWN = 255
