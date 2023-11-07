@@ -129,8 +129,9 @@ class DynamicPriceEngine:
         :return: 是否取消成功
         """
         qmt_order_id = order.qmt_order_id
+        # ok:0:成功,  -1:委托已完成撤单失败, -2:未找到对应委托编号撤单失败, -3:账号未登陆撤单失败
         ok = self.qmt_client.cancel_order_stock(qmt_order_id)
-        if ok != 1:
+        if ok != 0:
             # 撤单失败，或许已成
             return False
         # 订单已撤，更新已交易信息
@@ -158,7 +159,7 @@ class DynamicPriceEngine:
                 logger.info(f"execute_order: price_diff={price_diff},micro price的价差大于阈值，调整委托")
                 ok = self.cancel_order(order)
                 if not ok:
-                    logger.info(f"execute_order: 撤单异常，待确认.order={order}")
+                    logger.info(f"execute_order: 撤单异常,res={ok}，待确认.order={order}")
                     self.to_verify_order_list.append(order)
                     return
             else:
