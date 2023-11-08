@@ -11,7 +11,7 @@ if __name__ == '__main__':
     sys_utils.logging_config()
     host = '192.168.1.60'
     port = 5000
-    spread_tolerance = 0.05
+    spread_tolerance = 0.02
     engine = DynamicPriceEngine(host=host, port=port, spread_tolerance=spread_tolerance)
 
     filename = 'static/trade_order_new_20231103.csv'
