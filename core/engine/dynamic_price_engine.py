@@ -203,7 +203,7 @@ class DynamicPriceEngine:
         for to_verify_order in self.to_verify_order_list:
             qmt_order_id = to_verify_order.qmt_order_id
             if qmt_order_id not in full_order_ref:
-                logger.info(f"order not found in order history{to_verify_order}")
+                logger.info(f"order not found in order history {to_verify_order}")
                 self.error_order_list.append(to_verify_order)
                 continue
             qmt_order = full_order_ref[qmt_order_id]
