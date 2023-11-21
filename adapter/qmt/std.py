@@ -11,7 +11,9 @@ client = QmtGrpcClient(host, port)
 def latest_tick_slice(order_book_ids: List[str]) -> pd.DataFrame:
     stock_code_list = [rq_utils.reverse_id_convert(order_book_id) for order_book_id in order_book_ids]
     res = client.live_tick_data(stock_code_list)
-    return pd.DataFrame(res)
+    df = pd.DataFrame(res)
+    df['order_book_id'] = df['stock_code'].apply(lambda x: rq_utils.id_convert(x))
+    return df
 
 
 if __name__ == '__main__':

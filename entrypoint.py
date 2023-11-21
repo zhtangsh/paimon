@@ -12,8 +12,9 @@ if __name__ == '__main__':
     host = '192.168.1.60'
     port = 5000
     spread_tolerance = 0.1
-    engine = DynamicPriceEngine(host=host, port=port, spread_tolerance=spread_tolerance)
+    data_feed = 'qmt'
+    engine = DynamicPriceEngine(host=host, port=port, spread_tolerance=spread_tolerance, data_feed=data_feed)
 
-    filename = 'static/trade_order_new_20231103.csv'
+    filename = 'static/trade_order_ref_v3_20231117.csv'
     target_order_list = engine.build_target_order_csv(filename=filename)
     engine.submit_target_order(target_order_list, check_period=1)
