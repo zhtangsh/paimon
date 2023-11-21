@@ -172,10 +172,14 @@ class DynamicPriceEngine:
                 return
         price = round(cur_micro_price, 3)
         volume = order.volume_to_trade()
+        # 如果是买单，检查余额是否够用，不够则在下一个tick再下单
+        if order.order_type == OrderType.STOCK_BUY:
+            asset = self.qmt_client.get_stock_asset()
+            if price * volume > asset.cash:
+                logger.info(f"execute_order: 余额不足,order={order}放回队列，下一tick再进行下单.")
+                self.limit_order_queue.append(order)
+                return
         order_type = QmtOrderType.STOCK_BUY if order.order_type == OrderType.STOCK_BUY else QmtOrderType.STOCK_SELL
-        if stock_code == '204001.SH':
-            order_type = QmtOrderType.STOCK_SELL
-            price = (round(price // 0.005) + 2) * 0.005
         price_type = QmtPriceType.FIX_PRICE
         qmt_order_id = self.qmt_client.order_stock(
             stock_code=stock_code, order_type=order_type, order_volume=volume, price_type=price_type,
