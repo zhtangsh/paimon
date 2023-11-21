@@ -11,7 +11,8 @@ import pandas as pd
 import logging
 
 from trade.qmt.constant import QmtOrderType, QmtPriceType
-from adapter.rqdata import general
+from adapter.rqdata import std as rq_std
+from adapter.qmt import std as qmt_std
 
 logger = logging.getLogger(__name__)
 
@@ -27,11 +28,12 @@ class DynamicPriceEngine:
     price_df: pd.DataFrame
     spread_tolerance: float
 
-    def __init__(self, host, port, spread_tolerance=0.01, strategy_name: str = 'test'):
+    def __init__(self, host, port, spread_tolerance=0.01, strategy_name: str = 'test', data_feed: str = 'rqdata'):
         self.qmt_client = QmtGrpcClient(host=host, port=port)
         self.spread_tolerance = spread_tolerance
         self.current_order_list = []
         self.strategy_name = strategy_name
+        self.data_feed = data_feed
         # 待确认委托列表
         self.to_verify_order_list: List[Order] = []
         # 委托列表
@@ -118,7 +120,10 @@ class DynamicPriceEngine:
         if not order_book_id_list or len(order_book_id_list) == 0:
             self.price_df = pd.DataFrame()
             return
-        self.price_df = general.get_live_ticks(order_book_ids=order_book_id_list).reset_index(level=0)
+        if self.data_feed == 'rqdata':
+            self.price_df = rq_std.latest_tick_slice(order_book_ids=order_book_id_list)
+        else:
+            self.price_df = qmt_std.latest_tick_slice(order_book_ids=order_book_id_list)
         self.price_df['micro_price'] = (self.price_df['a1'] * self.price_df['a1_v'] + self.price_df['b1'] *
                                         self.price_df['b1_v']) / (self.price_df['a1_v'] + self.price_df['b1_v'])
 

@@ -4,7 +4,7 @@ import requests
 from trade.qmt.constant import QmtPriceType
 
 from .model import *
-from typing import List
+from typing import List, Dict
 
 
 class QmtGrpcClient:
@@ -124,3 +124,14 @@ class QmtGrpcClient:
         r = requests.post(self._url, data=json.dumps(payload), headers=header)
         r_json = r.json()
         return QmtAsset(r_json['result'])
+
+    def live_tick_data(self, order_book_id_list) -> List[Dict[str, any]]:
+        payload = {
+            "jsonrpc": "2.0",
+            "params": {'order_id_list': order_book_id_list},
+            "method": "data.live_tick_data",
+            'id': str(uuid.uuid4()),
+        }
+        header = self.build_header()
+        r = requests.post(self._url, data=json.dumps(payload), headers=header)
+        return r.json()['result']
