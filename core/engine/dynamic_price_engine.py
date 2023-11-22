@@ -167,6 +167,11 @@ class DynamicPriceEngine:
                     logger.info(f"execute_order: 撤单异常,res={ok}，待确认.order={order}")
                     self.to_verify_order_list.append(order)
                     return
+                else:
+                    logger.info(f"execute_order: 撤单成功, res={ok},下个循环再下单")
+                    order.qmt_order_id = -1
+                    self.limit_order_queue.append(order)
+                    return
             else:
                 logger.info(f"execute_order: price_diff={price_diff},micro price的价差小于阈值，继续持有委托")
                 return
