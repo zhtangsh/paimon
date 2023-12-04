@@ -60,6 +60,7 @@ class DynamicPriceEngine:
         if order_date is None:
             order_date = datetime.date.today()
         df = pd.read_csv(filename, index_col=0)
+        df = df[df['order_status'] == 'normal']
         col_mask = ['order_book_id', 'order_int']
         values = df[col_mask].to_dict("records")
         expected_position = [from_csv_position(value) for value in values]
