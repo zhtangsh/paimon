@@ -136,7 +136,7 @@ class DynamicPriceEngine:
         qmt_order_id = order.qmt_order_id
         # ok:0:成功,  -1:委托已完成撤单失败, -2:未找到对应委托编号撤单失败, -3:账号未登陆撤单失败
         ok = self.qmt_client.cancel_order_stock(qmt_order_id)
-        if ok != 0:
+        if ok == -2 or ok == -3:
             # 撤单失败，或许已成
             return False
         # 订单已撤，更新已交易信息
