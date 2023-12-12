@@ -178,7 +178,10 @@ class DynamicPriceEngine:
                 return
         price = round(cur_micro_price, 3)
         volume = order.volume_to_trade()
-        # 如果是买单，检查余额是否够用，不够则在下一个tick再下单
+        if volume == 0:
+            logger.info(f"execute_order: order={order},待执行仓位为0,移除。")
+            return
+            # 如果是买单，检查余额是否够用，不够则在下一个tick再下单
         if order.order_type == OrderType.STOCK_BUY:
             asset = self.qmt_client.get_stock_asset()
             if price * volume > asset.cash:
@@ -240,6 +243,9 @@ class DynamicPriceEngine:
         next_limit_order_queue = []
         for order in self.limit_order_queue:
             if order.qmt_order_id == -1:
+                if order.volume_to_trade() == 0:
+                    # 订单可执行金额为0,可能是撤单失败已成订单，移除
+                    continue
                 # 初始订单，还未在qmt下单
                 next_limit_order_queue.append(order)
                 continue
