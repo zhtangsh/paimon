@@ -128,7 +128,7 @@ class DynamicPriceEngine:
         self.price_df['micro_price'] = (self.price_df['a1'] * self.price_df['a1_v'] + self.price_df['b1'] *
                                         self.price_df['b1_v']) / (self.price_df['a1_v'] + self.price_df['b1_v'])
 
-    def cancel_order(self, order: Order) -> bool:
+    def cancel_order(self, order: Order) -> int:
         """
         调用qmt接口进行撤单操作
         :param order: 待撤的委托
@@ -137,14 +137,12 @@ class DynamicPriceEngine:
         qmt_order_id = order.qmt_order_id
         # ok:0:成功,  -1:委托已完成撤单失败, -2:未找到对应委托编号撤单失败, -3:账号未登陆撤单失败
         ok = self.qmt_client.cancel_order_stock(qmt_order_id)
-        if ok == -2 or ok == -3:
-            # 撤单失败，或许已成
-            return False
         # 订单已撤，更新已交易信息
-        full_order_ref = self.full_order_ref()
-        canceled_order = full_order_ref[qmt_order_id]
-        order.traded_volume = order.traded_volume + canceled_order.traded_volume
-        return True
+        if ok == 0 or ok == 1:
+            full_order_ref = self.full_order_ref()
+            canceled_order = full_order_ref[qmt_order_id]
+            order.traded_volume = order.traded_volume + canceled_order.traded_volume
+        return ok
 
     def execute_order(self, order: Order) -> None:
         """
@@ -164,9 +162,12 @@ class DynamicPriceEngine:
             if price_diff > self.spread_tolerance:
                 logger.info(f"execute_order: price_diff={price_diff},micro price的价差大于阈值，调整委托")
                 ok = self.cancel_order(order)
-                if not ok:
+                if ok == -2 or ok == -3:
                     logger.info(f"execute_order: 撤单异常,res={ok}，待确认.order={order}")
                     self.to_verify_order_list.append(order)
+                    return
+                elif ok == -1:
+                    logger.info(f"execute_order: 订单已成,res={ok}，待确认.order={order}")
                     return
                 else:
                     logger.info(f"execute_order: 撤单成功, res={ok},下个循环再下单")
