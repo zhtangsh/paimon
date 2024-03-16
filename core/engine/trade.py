@@ -1,6 +1,6 @@
 import time
 from dataclasses import dataclass
-from core.factory import from_qmt_position_list, from_csv_position
+from core.factory.trade import from_qmt_position_list, from_csv_position
 from trade.qmt import QmtGrpcClient
 from core.model import Position, Order, OrderType
 from typing import List
