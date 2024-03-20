@@ -1,0 +1,10 @@
+numpy
+statsmodels
+pandas==1.4.3
+pymysql==1.0.2
+sqlalchemy==1.4.39
+minio==7.2.0
+rqdatac==2.11.11.4
+QuantLib==1.26
+clickhouse-sqlalchemy==0.2.5
+redis

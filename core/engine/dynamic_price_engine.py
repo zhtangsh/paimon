@@ -565,7 +565,7 @@ class V2DynamicPriceEngine:
         logger.info(f"prune_limit_order_pool: 调整后的limit_order_queue={next_limit_order_queue}")
         self.limit_order_queue = next_limit_order_queue
 
-    def submit_target_order(self, target_order, check_period: int = 0.01) -> None:
+    def submit_target_order(self, target_order, check_period: int = 0.01) -> List[Order]:
         """
         - 以micro price下单
         - 实时监控当前价格与订单价格的偏差，及时调整订单
@@ -576,7 +576,7 @@ class V2DynamicPriceEngine:
         expected_position = target_order.get("expected_position")
         if date < datetime.date.today():
             logger.info(f"过去日期，跳过:{target_order}")
-            return
+            return []
         today = datetime.date.today()
         open_datetime_phase1 = datetime.datetime(today.year, today.month, today.day, 9, 30)
         close_datetime_phase1 = datetime.datetime(today.year, today.month, today.day, 11, 30)
@@ -605,6 +605,7 @@ class V2DynamicPriceEngine:
                 break
             self.order_execution_pool_tick()
             time.sleep(check_period)
+        return order_list
 
     def close_cash(self):
         asset = self.qmt_client.get_stock_asset()
