@@ -334,7 +334,42 @@ class V2DynamicPriceEngine:
         # 异常委托列表，需手动确认
         self.error_order_list: List[Order] = []
 
-    def check_current_position(self) -> List[Position]:
+    def check_current_position_v2(self) -> List[Position]:
+        """
+        检查当前账户的仓位信息
+        SELECT * FROM trade_data
+        WHERE account_id ='8881398787' and strategy_name ='daily_v1'
+        order by traded_time asc
+        :return: 仓位信息列表
+        """
+        sql = f"SELECT *  FROM trade_data a " \
+              f"WHERE a.strategy_name ='{self.strategy_name}' and a.account_id = '8881398787' " \
+              f"ORDER BY a.traded_time ASC"
+        engine = DbEngineFactory.engine_paimon()
+        df_trade_data = pd.read_sql(sql, con=engine)
+        df_trade_data['traded_date'] = df_trade_data['traded_time'].dt.date
+        df_trade_data['order_direction'] = df_trade_data['order_type'].apply(lambda x: 1 if x == '股票买入' else -1)
+        groups = df_trade_data.groupby(by=['traded_date', 'stock_code'])
+        holding = {}
+        for (date, stock_code), group in groups:
+            volume_sum = (group['order_direction'] * group['traded_volume']).values.sum()
+            if stock_code not in holding and volume_sum < 0:
+                logger.info(f"该记录没有建仓信息，忽视:date={date},stock_code={stock_code},volume_sum={volume_sum}")
+                continue
+            amount = holding.get(stock_code)
+            if amount is None:
+                amount = 0
+                holding[stock_code] = amount
+            holding[stock_code] = amount + volume_sum
+        res = []
+        for k, v in holding.items():
+            if v > 0:
+                print(f"stock_code={k},amount={v}")
+                res.append(Position(k, v))
+        print(len(res))
+        return res
+
+    def check_current_position_v1(self) -> List[Position]:
         """
         检查当前账户的仓位信息
         SELECT a.record_date, b.stock_code,a.volume  FROM paimon.trade_history_daily_snapshot a
@@ -355,6 +390,9 @@ class V2DynamicPriceEngine:
         stock_position_list = daily_snapshot_df[daily_snapshot_df['record_date'] == previous_date].to_dict("records")
         return [Position(stock_position.get('stock_code'), stock_position.get('volume')) for stock_position in
                 stock_position_list]
+
+    def check_current_position(self) -> List[Position]:
+        return self.check_current_position_v2()
 
     def build_target_order_csv(self, filename: str, order_date: datetime.date = None, deadline_second: int = 60 * 5):
         """
