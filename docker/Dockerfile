@@ -11,4 +11,4 @@ RUN pip install -i $MIRROR -r requirement.txt
 
 ADD paimon paimon
 
-ENTRYPOINT ["/usr/local/bin/python","paimon/entrypoint.py"]
+ENTRYPOINT ["/usr/local/bin/python"]

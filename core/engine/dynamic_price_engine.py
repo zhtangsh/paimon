@@ -347,6 +347,8 @@ class V2DynamicPriceEngine:
               f"ORDER BY a.traded_time ASC"
         engine = DbEngineFactory.engine_paimon()
         df_trade_data = pd.read_sql(sql, con=engine)
+        if df_trade_data.empty:
+            return []
         df_trade_data['traded_date'] = df_trade_data['traded_time'].dt.date
         df_trade_data['order_direction'] = df_trade_data['order_type'].apply(lambda x: 1 if x == '股票买入' else -1)
         groups = df_trade_data.groupby(by=['traded_date', 'stock_code'])
@@ -405,7 +407,8 @@ class V2DynamicPriceEngine:
         if order_date is None:
             order_date = datetime.date.today()
         df = pd.read_csv(filename, index_col=0)
-        df = df[df['order_status'] == 'normal']
+        if 'order_status' in df.columns:
+            df = df[df['order_status'] == 'normal']
         col_mask = ['order_book_id', 'order_int']
         values = df[col_mask].to_dict("records")
         expected_position = [from_csv_position(value) for value in values]
@@ -624,6 +627,7 @@ class V2DynamicPriceEngine:
         current_position = self.check_current_position()
         # 生成当前订单列表: order_list
         order_list = self.generate_order(current_position, expected_position)
+        exit(1)
         # 依据订单列表生成订单池
         self.limit_order_queue = [order for order in order_list]
         # 循环执行订单
