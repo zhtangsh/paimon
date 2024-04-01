@@ -1,6 +1,6 @@
 numpy
 statsmodels
-pandas==1.4.3
+pandas
 pymysql==1.0.2
 sqlalchemy==1.4.39
 minio==7.2.0
