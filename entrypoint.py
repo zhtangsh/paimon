@@ -1,7 +1,10 @@
+import datetime
+
 from utils import sys_utils
 from core.engine import V2DynamicPriceEngine
 from utils import trading_utils, email_utils
 import logging
+import exchange_calendars as xcals
 
 logger = logging.getLogger(__name__)
 
@@ -13,6 +16,10 @@ if __name__ == '__main__':
     data_feed = 'qmt'
     strategy_name = 'daily_v1'
     receiver = "wangdongli0102@163.com"
+    xshg = xcals.get_calendar("XSHG")
+    if not xshg.is_session(datetime.date.today()):
+        logger.info("非交易日，退出")
+        exit(0)
     trade_date = trading_utils.latest_trading_date()
     filename_prefix = 'http://192.168.1.50:9000/cbond-strategy/trade_order/trade_order_ref_v5_'
     engine = V2DynamicPriceEngine(host=host, port=port, spread_tolerance=spread_tolerance, data_feed=data_feed,
