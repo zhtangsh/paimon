@@ -1,23 +1,37 @@
 import json
 import uuid
 import requests
+import logging
 from trade.qmt.constant import QmtPriceType
 
 from .model import *
 from typing import List, Dict
 
+logger = logging.getLogger(__name__)
+
 
 class QmtGrpcClient:
+
+    def __init__(self, host: str, port: int):
+        self._host = host
+        self._port = port
+        self._url = f"http://{host}:{port}/api"
 
     def build_header(self):
         return {
             'Content-Type': 'application/json'
         }
 
-    def __init__(self, host: str, port: int):
-        self._host = host
-        self._port = port
-        self._url = f"http://{host}:{port}/api"
+    def _do_post(self, retry=3, **kwargs):
+        while retry > 0:
+            try:
+                r = requests.post(**kwargs)
+                return r
+            except Exception as e:
+                logger.error("_do_post error", e)
+                retry -= 1
+                if retry == 0:
+                    raise e
 
     def get_stock_positions(self) -> List[QmtPosition]:
         payload = {
@@ -27,7 +41,7 @@ class QmtGrpcClient:
             'id': str(uuid.uuid4()),
         }
         header = self.build_header()
-        r = requests.post(self._url, data=json.dumps(payload), headers=header)
+        r = self._do_post(url=self._url, data=json.dumps(payload), headers=header)
         r_json = r.json()
         res = []
         for obj in r_json['result']:
@@ -42,7 +56,7 @@ class QmtGrpcClient:
             'id': str(uuid.uuid4()),
         }
         header = self.build_header()
-        r = requests.post(self._url, data=json.dumps(payload), headers=header)
+        r = self._do_post(url=self._url, data=json.dumps(payload), headers=header)
         r_json = r.json()
         res = []
         for obj in r_json['result']:
@@ -60,7 +74,7 @@ class QmtGrpcClient:
             'id': str(uuid.uuid4()),
         }
         header = self.build_header()
-        r = requests.post(self._url, data=json.dumps(payload), headers=header)
+        r = self._do_post(url=self._url, data=json.dumps(payload), headers=header)
         r_json = r.json()
         res = []
         for obj in r_json['result']:
@@ -94,7 +108,7 @@ class QmtGrpcClient:
         }
 
         header = self.build_header()
-        r = requests.post(self._url, data=json.dumps(payload), headers=header)
+        r = self._do_post(url=self._url, data=json.dumps(payload), headers=header)
         r_json = r.json()
         return r_json['result']
 
@@ -109,7 +123,7 @@ class QmtGrpcClient:
             'id': str(uuid.uuid4()),
         }
         header = self.build_header()
-        r = requests.post(self._url, data=json.dumps(payload), headers=header)
+        r = self._do_post(url=self._url, data=json.dumps(payload), headers=header)
         r_json = r.json()
         return r_json['result']
 
@@ -121,7 +135,7 @@ class QmtGrpcClient:
             'id': str(uuid.uuid4()),
         }
         header = self.build_header()
-        r = requests.post(self._url, data=json.dumps(payload), headers=header)
+        r = self._do_post(url=self._url, data=json.dumps(payload), headers=header)
         r_json = r.json()
         return QmtAsset(r_json['result'])
 
@@ -133,5 +147,5 @@ class QmtGrpcClient:
             'id': str(uuid.uuid4()),
         }
         header = self.build_header()
-        r = requests.post(self._url, data=json.dumps(payload), headers=header)
+        r = self._do_post(url=self._url, data=json.dumps(payload), headers=header)
         return r.json()['result']
