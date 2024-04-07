@@ -21,7 +21,7 @@ if __name__ == '__main__':
         logger.info("非交易日，退出")
         exit(0)
     trade_date = trading_utils.latest_trading_date()
-    filename_prefix = 'http://192.168.1.50:9000/cbond-strategy/trade_order/trade_order_ref_v5_'
+    filename_prefix = 'http://192.168.1.50:9000/cbond-strategy/trade_order/trade_order_ref_v6_'
     engine = V2DynamicPriceEngine(host=host, port=port, spread_tolerance=spread_tolerance, data_feed=data_feed,
                                   strategy_name=strategy_name)
     filename = f"{filename_prefix}{trade_date.strftime('%Y%m%d')}.csv"
