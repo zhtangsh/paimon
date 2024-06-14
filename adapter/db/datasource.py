@@ -64,6 +64,12 @@ class DbEngineFactory:
                     pool_recycle=3600,
                     echo=False
                 )
+            elif key == 'paimondev':
+                engine = create_engine(
+                    DbEngineFactory.url() + '/paimondev',
+                    pool_recycle=3600,
+                    echo=False
+                )
             elif key == 'clickhouse_rqdata':
                 engine = create_engine(
                     DbEngineFactory.clickhouse_url() + '/rqdata_cbond',
@@ -73,6 +79,12 @@ class DbEngineFactory:
             elif key == 'clickhouse_strategy_tbf':
                 engine = create_engine(
                     DbEngineFactory.clickhouse_url() + '/strategy_tbf',
+                    pool_recycle=3600,
+                    echo=False
+                )
+            elif key == 'wind_fofstar':
+                engine = create_engine(
+                    DbEngineFactory.url() + '/wind_fofstar',
                     pool_recycle=3600,
                     echo=False
                 )
