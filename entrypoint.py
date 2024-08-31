@@ -10,7 +10,7 @@ logger = logging.getLogger(__name__)
 
 if __name__ == '__main__':
     sys_utils.logging_config()
-    host = '192.168.1.60'
+    host = '192.168.1.57'
     port = 6000
     spread_tolerance = 0.1
     data_feed = 'qmt'
