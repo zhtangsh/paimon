@@ -3,7 +3,7 @@ from utils import rq_utils
 from typing import List
 import pandas as pd
 
-host = '192.168.1.60'
+host = '192.168.1.57'
 port = 6000
 client = QmtGrpcClient(host, port)
 
