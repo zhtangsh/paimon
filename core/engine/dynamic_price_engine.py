@@ -194,8 +194,9 @@ class V2DynamicPriceEngine:
         qmt_order_id = order.qmt_order_id
         # ok:0:成功,  -1:委托已完成撤单失败, -2:未找到对应委托编号撤单失败, -3:账号未登陆撤单失败
         ok = self.qmt_client.cancel_order_stock(qmt_order_id)
+        logger.info(f"cancel_order: qmt response:{ok}")
         # 订单已撤，更新已交易信息
-        if ok == 0 or ok == 1:
+        if ok > 0:
             full_order_ref = self.full_order_ref()
             canceled_order = full_order_ref[qmt_order_id]
             order.traded_volume = order.traded_volume + canceled_order.traded_volume
