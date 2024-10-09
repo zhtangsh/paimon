@@ -15,13 +15,15 @@ if __name__ == '__main__':
     spread_tolerance = 0.1
     data_feed = 'qmt'
     strategy_name = 'daily_v1'
+    FILENAME_PREFIX = sys_utils.get_env('FILENAME_PREFIX',
+                                        'http://192.168.1.50:9000/cbond-strategy/trade_order/trade_order_ref_v6_')
     receiver = "wangdongli0102@163.com"
     xshg = xcals.get_calendar("XSHG")
     if not xshg.is_session(datetime.date.today()):
         logger.info("非交易日，退出")
         exit(0)
     trade_date = trading_utils.latest_trading_date()
-    filename_prefix = 'http://192.168.1.50:9000/cbond-strategy/trade_order/trade_order_ref_v6_'
+    filename_prefix = FILENAME_PREFIX
     engine = V2DynamicPriceEngine(host=host, port=port, spread_tolerance=spread_tolerance, data_feed=data_feed,
                                   strategy_name=strategy_name)
     filename = f"{filename_prefix}{trade_date.strftime('%Y%m%d')}.csv"
