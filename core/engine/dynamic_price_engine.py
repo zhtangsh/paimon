@@ -251,6 +251,8 @@ class V2DynamicPriceEngine:
                 return
         order_type = QmtOrderType.STOCK_BUY if order.order_type == OrderType.STOCK_BUY else QmtOrderType.STOCK_SELL
         price_type = QmtPriceType.FIX_PRICE
+        logger.info(
+            f"execute_order: stock_code={stock_code},order_type={order_type},order_volume={volume},price_type={price_type},price={price},strategy_name={strategy_name}")
         qmt_order_id = self.qmt_client.order_stock(
             stock_code=stock_code, order_type=order_type, order_volume=volume, price_type=price_type,
             price=price, strategy_name=self.strategy_name, order_remark='test')

@@ -1,4 +1,5 @@
 import datetime
+import time
 
 from utils import sys_utils
 from core.engine import V2DynamicPriceEngine
@@ -12,11 +13,12 @@ if __name__ == '__main__':
     sys_utils.logging_config()
     host = '192.168.1.57'
     port = 6000
-    spread_tolerance = 0.1
     data_feed = 'qmt'
     strategy_name = 'daily_v1'
     FILENAME_PREFIX = sys_utils.get_env('FILENAME_PREFIX',
                                         'http://192.168.1.50:9000/cbond-strategy/trade_order/trade_order_ref_v6_')
+    SPREAD_TOLERANCE = sys_utils.get_env('SPREAD_TOLERANCE', '0.1')
+    spread_tolerance = float(SPREAD_TOLERANCE)
     receiver = "wangdongli0102@163.com"
     xshg = xcals.get_calendar("XSHG")
     if not xshg.is_session(datetime.date.today()):
@@ -29,6 +31,10 @@ if __name__ == '__main__':
     filename = f"{filename_prefix}{trade_date.strftime('%Y%m%d')}.csv"
     target_order_list = engine.build_target_order_csv(filename=filename)
     order_list = engine.submit_target_order(target_order_list, check_period=1)
+    time.sleep(10)
+    target_order_list = engine.build_target_order_csv(filename=filename)
+    order_list2 = engine.submit_target_order(target_order_list, check_period=1)
+    order_list = order_list + order_list2
     message = ""
     for order in order_list:
         message += f"股票ID:{order.stock_code}\t交易方向:{'买入' if order.order_type == 23 else '卖出'}\t交易量:{order.volume}\n"
