@@ -30,9 +30,11 @@ class V2DynamicPriceEngine:
     price_df: pd.DataFrame
     spread_tolerance: float
 
-    def __init__(self, host, port, spread_tolerance=0.01, strategy_name: str = 'test', data_feed: str = 'rqdata'):
+    def __init__(self, host, port, spread_tolerance=0.01, order_exist_tolerance=60, strategy_name: str = 'test',
+                 data_feed: str = 'rqdata'):
         self.qmt_client = QmtGrpcClient(host=host, port=port)
         self.spread_tolerance = spread_tolerance
+        self.order_exist_tolerance = order_exist_tolerance
         self.current_order_list = []
         self.strategy_name = strategy_name
         self.data_feed = data_feed
@@ -216,6 +218,7 @@ class V2DynamicPriceEngine:
         order_book_id = order.order_book_id
         cur_micro_price = self.price_df[self.price_df['order_book_id'] == order_book_id].iloc[-1]['micro_price']
         if order.qmt_submitted():
+            ## 检查价差
             price_diff = abs(cur_micro_price - order.price)
             if price_diff > self.spread_tolerance:
                 logger.info(f"execute_order: price_diff={price_diff},micro price的价差大于阈值，调整委托")
@@ -230,11 +233,34 @@ class V2DynamicPriceEngine:
                 else:
                     logger.info(f"execute_order: 撤单成功, res={ok},下个循环再下单")
                     order.qmt_order_id = -1
+                    order.order_create_ts = -1
                     self.limit_order_queue.append(order)
                     return
             else:
                 logger.info(f"execute_order: price_diff={price_diff},micro price的价差小于阈值，继续持有委托")
-                return
+            ## 检查下单时间
+            cur_ts = time.time_ns() // 1000
+            order_existed_seconds = (cur_ts - order.order_create_ts) / 1000 / 1000
+            if order_existed_seconds > self.order_exist_tolerance:
+                logger.info(f"execute_order: order_existed_seconds={order_existed_seconds}秒,委托存在时间大于阈值，调整委托")
+                ok = self.cancel_order(order)
+                if ok == -2 or ok == -3:
+                    logger.info(f"execute_order: 撤单异常,res={ok}，待确认.order={order}")
+                    self.to_verify_order_list.append(order)
+                    return
+                elif ok == -1:
+                    logger.info(f"execute_order: 订单已成,res={ok}，待确认.order={order}")
+                    return
+                else:
+                    logger.info(f"execute_order: 撤单成功, res={ok},下个循环再下单")
+                    order.qmt_order_id = -1
+                    order.order_create_ts = -1
+                    self.limit_order_queue.append(order)
+                    return
+            else:
+                logger.info(f"execute_order: order_existed_seconds={order_existed_seconds},micro 委托存在时间小于阈值，继续持有委托")
+            ## 对于以提交的order，不做任何操作，返回
+            return
         price = round(cur_micro_price, 3)
         volume = order.volume_to_trade()
         if volume == 0:
@@ -252,7 +278,7 @@ class V2DynamicPriceEngine:
         order_type = QmtOrderType.STOCK_BUY if order.order_type == OrderType.STOCK_BUY else QmtOrderType.STOCK_SELL
         price_type = QmtPriceType.FIX_PRICE
         logger.info(
-            f"execute_order: stock_code={stock_code},order_type={order_type},order_volume={volume},price_type={price_type},price={price},strategy_name={strategy_name}")
+            f"execute_order: stock_code={stock_code},order_type={order_type},order_volume={volume},price_type={price_type},price={price},strategy_name={self.strategy_name}")
         qmt_order_id = self.qmt_client.order_stock(
             stock_code=stock_code, order_type=order_type, order_volume=volume, price_type=price_type,
             price=price, strategy_name=self.strategy_name, order_remark='test')
