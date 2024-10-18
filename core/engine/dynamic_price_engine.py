@@ -395,4 +395,5 @@ class V2DynamicPriceEngine:
         stock_code = '204001.SH'
         price_type = QmtPriceType.LATEST_PRICE
         self.qmt_client.order_stock(stock_code=stock_code, order_type=OrderType.STOCK_SELL, order_volume=order_volume,
-                                    price_type=price_type, price=0, strategy_name='test', order_remark='国债逆回购')
+                                    price_type=price_type, price=0, strategy_name='cash_management',
+                                    order_remark='国债逆回购')
