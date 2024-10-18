@@ -391,9 +391,10 @@ class V2DynamicPriceEngine:
     def close_cash(self):
         asset = self.qmt_client.get_stock_asset()
         cash = float(asset.cash)
-        order_volume = int(cash // 1000)
+        order_volume = int(cash // 1000) * 10
         stock_code = '204001.SH'
         price_type = QmtPriceType.LATEST_PRICE
+        logger.info(f"close_cash: 购买国债逆回购volume={order_volume}")
         self.qmt_client.order_stock(stock_code=stock_code, order_type=OrderType.STOCK_SELL, order_volume=order_volume,
                                     price_type=price_type, price=0, strategy_name='cash_management',
                                     order_remark='国债逆回购')
