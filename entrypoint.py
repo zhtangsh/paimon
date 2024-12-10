@@ -27,6 +27,10 @@ if __name__ == '__main__':
     if not xshg.is_session(datetime.date.today()):
         logger.info("非交易日，退出")
         exit(0)
+    if data_feed=='rqdata':
+        logger.info('data feed is rq, initialize it')
+        import rqdatac as rq
+        rq.init()
     trade_date = trading_utils.latest_trading_date()
     filename_prefix = FILENAME_PREFIX
     engine = V2DynamicPriceEngine(host=host, port=port, spread_tolerance=spread_tolerance, data_feed=data_feed,
