@@ -11,13 +11,16 @@ logger = logging.getLogger(__name__)
 
 if __name__ == '__main__':
     sys_utils.logging_config()
-    host = '192.168.1.57'
-    port = 6000
-    data_feed = 'qmt'
     strategy_name = 'daily_v1'
     FILENAME_PREFIX = sys_utils.get_env('FILENAME_PREFIX',
                                         'http://192.168.1.50:9000/cbond-strategy/trade_order/trade_order_ref_v6_')
     SPREAD_TOLERANCE = sys_utils.get_env('SPREAD_TOLERANCE', '0.1')
+    DATA_FEED = sys_utils.get_env('DATA_FEED', 'qmt')
+    QMT_HOST = sys_utils.get_env('QMT_HOST', '192.168.1.57')
+    QMT_PORT = sys_utils.get_env('QMT_PORT', '6000')
+    host = QMT_HOST
+    port = int(QMT_PORT)
+    data_feed = DATA_FEED
     spread_tolerance = float(SPREAD_TOLERANCE)
     receiver = "wangdongli0102@163.com"
     xshg = xcals.get_calendar("XSHG")
