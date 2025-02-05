@@ -7,5 +7,5 @@ minio==7.2.0
 rqdatac==2.11.11.4
 QuantLib==1.26
 clickhouse-sqlalchemy==0.2.5
-exchange_calendars==4.5.3
+exchange_calendars==4.9
 redis
