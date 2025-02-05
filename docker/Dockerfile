@@ -1,4 +1,4 @@
-FROM 192.168.1.50:29006/tools/python:3.9.18-bookworm
+FROM 192.168.1.50:29006/tools/python:3.10.16-bookworm
 
 ENV MIRROR=https://pypi.tuna.tsinghua.edu.cn/simple
 ENV PYTHONPATH=/dropbox/:/dropbox/paimon
