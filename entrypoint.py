@@ -27,9 +27,10 @@ if __name__ == '__main__':
     if not xshg.is_session(datetime.date.today()):
         logger.info("非交易日，退出")
         exit(0)
-    if data_feed=='rqdata':
+    if data_feed == 'rqdata':
         logger.info('data feed is rq, initialize it')
         import rqdatac as rq
+
         rq.init()
     trade_date = trading_utils.latest_trading_date()
     filename_prefix = FILENAME_PREFIX
@@ -46,3 +47,7 @@ if __name__ == '__main__':
     for order in order_list:
         message += f"股票ID:{order.stock_code}\t交易方向:{'买入' if order.order_type == 23 else '卖出'}\t交易量:{order.volume}\n"
     email_utils.send_mail_163(recv=receiver, title=f"{trade_date}可转债交易交易简报", content=message, file_path=None)
+    if engine.error_order_list:
+        message = f"下单引擎有错误，请人工查看{engine.error_order_list}"
+        logger.info(message)
+        email_utils.send_mail_163(recv=receiver, title="下单引擎有错误,请检查交易软件", content=message, file_path=None)

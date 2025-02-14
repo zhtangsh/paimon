@@ -346,7 +346,7 @@ class V2DynamicPriceEngine:
         logger.info(f"prune_limit_order_pool: 调整后的limit_order_queue={next_limit_order_queue}")
         self.limit_order_queue = next_limit_order_queue
 
-    def submit_target_order(self, target_order, check_period: int = 0.01) -> List[Order]:
+    def submit_target_order(self, target_order, check_period: int = 0.1) -> List[Order]:
         """
         - 以micro price下单
         - 实时监控当前价格与订单价格的偏差，及时调整订单
