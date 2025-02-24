@@ -330,6 +330,7 @@ class V2DynamicPriceEngine:
         # 获得可撤单的委托列表
         cancellable_order_ref = self.cancellable_order_ref_tick()
         next_limit_order_queue = []
+        qmt_order_id_ref = set()  # 由于处理不当，撤单重下的Order直接放回队列，这里对limit_order_queue进行去重
         for order in self.limit_order_queue:
             if order.qmt_order_id == -1:
                 if order.volume_to_trade() == 0:
@@ -342,6 +343,11 @@ class V2DynamicPriceEngine:
                 # qmt订单不可撤销，默认该订单已成
                 self.to_verify_order_list.append(order)
                 continue
+            if order.qmt_order_id in qmt_order_id_ref:
+                # 重复的订单，不做处理
+                logger.info(f"prune_limit_order_pool - 重复的订单，不做处理{order}")
+                continue
+            qmt_order_id_ref.add(order.qmt_order_id)
             next_limit_order_queue.append(order)
         logger.info(f"prune_limit_order_pool: 调整后的limit_order_queue={next_limit_order_queue}")
         self.limit_order_queue = next_limit_order_queue
