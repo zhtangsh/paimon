@@ -31,13 +31,14 @@ class V2DynamicPriceEngine:
     spread_tolerance: float
 
     def __init__(self, host, port, spread_tolerance=0.01, order_exist_tolerance=60, strategy_name: str = 'test',
-                 data_feed: str = 'rqdata'):
+                 data_feed: str = 'rqdata', position_type: str = "v2"):
         self.qmt_client = QmtGrpcClient(host=host, port=port)
         self.spread_tolerance = spread_tolerance
         self.order_exist_tolerance = order_exist_tolerance
         self.current_order_list = []
         self.strategy_name = strategy_name
         self.data_feed = data_feed
+        self.position_type = position_type
         # 待确认委托列表
         self.to_verify_order_list: List[Order] = []
         # 委托列表
@@ -79,7 +80,13 @@ class V2DynamicPriceEngine:
             if v > 0:
                 print(f"stock_code={k},amount={v}")
                 res.append(Position(k, v))
-        print(len(res))
+        return res
+
+    def check_current_position_qmt(self) -> List[Position]:
+        res = []
+        qmt_position = self.qmt_client.get_stock_positions()
+        for pos in qmt_position:
+            res.append(Position(pos.stock_code, pos.volume))
         return res
 
     def check_current_position_v1(self) -> List[Position]:
@@ -105,7 +112,12 @@ class V2DynamicPriceEngine:
                 stock_position_list]
 
     def check_current_position(self) -> List[Position]:
-        return self.check_current_position_v2()
+        if self.position_type == 'v2':
+            return self.check_current_position_v2()
+        elif self.position_type == 'qmt':
+            return self.check_current_position_qmt()
+        else:
+            raise ValueError(f'非法的仓位类型{self.position_type}')
 
     def build_target_order_csv(self, filename: str, order_date: datetime.date = None, deadline_second: int = 60 * 5):
         """

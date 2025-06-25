@@ -13,11 +13,12 @@ if __name__ == '__main__':
     sys_utils.logging_config()
     strategy_name = 'daily_v1'
     FILENAME_PREFIX = sys_utils.get_env('FILENAME_PREFIX',
-                                        'http://192.168.1.50:9000/cbond-strategy/trade_order/trade_order_ref_v6_')
+                                        'http://192.168.1.50:9000/cbond-strategy/trade_order/trade_order_ref_v10_')
     SPREAD_TOLERANCE = sys_utils.get_env('SPREAD_TOLERANCE', '0.1')
     DATA_FEED = sys_utils.get_env('DATA_FEED', 'qmt')
     QMT_HOST = sys_utils.get_env('QMT_HOST', '192.168.1.57')
     QMT_PORT = sys_utils.get_env('QMT_PORT', '6000')
+    POSITION_TYPE = sys_utils.get_env("POSITION_TYPE", "v2")
     host = QMT_HOST
     port = int(QMT_PORT)
     data_feed = DATA_FEED
