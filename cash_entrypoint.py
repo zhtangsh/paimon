@@ -10,8 +10,10 @@ logger = logging.getLogger(__name__)
 
 if __name__ == '__main__':
     sys_utils.logging_config()
-    host = '192.168.1.57'
-    port = 6000
+    QMT_HOST = sys_utils.get_env('QMT_HOST', '192.168.1.57')
+    QMT_PORT = sys_utils.get_env('QMT_PORT', '6000')
+    host = QMT_HOST
+    port = int(QMT_PORT)
     data_feed = 'qmt'
     strategy_name = 'cash_management'
     FILENAME_PREFIX = sys_utils.get_env('FILENAME_PREFIX',
